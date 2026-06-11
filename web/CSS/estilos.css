@@ -1,0 +1,313 @@
+/* =========================================
+   VARIABLES GLOBALES (Tu propia paleta)
+========================================= */
+:root {
+    --color-fondo: #f4f7f9;
+    --color-tarjeta: #ffffff;
+    --color-primario: #0d6efd;
+    --color-primario-hover: #0b5ed7;
+    --color-texto: #333333;
+    --color-texto-suave: #6c757d;
+    --color-borde: #dee2e6;
+    --color-error: #dc3545;
+    --color-error-fondo: #f8d7da;
+    --fuente-principal: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+/* =========================================
+   RESETEO BÁSICO
+========================================= */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: var(--fuente-principal);
+}
+
+body {
+    background-color: var(--color-fondo);
+    color: var(--color-texto);
+    /* El body por defecto ya NO es flex. Ocupa toda la pantalla normal. */
+}
+
+/* Esta clase mágica la usaremos SOLO para las pantallas de Login y Registro */
+.pantalla-centrada {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+/* =========================================
+   DISEÑO DE LA TARJETA DE LOGIN
+========================================= */
+.contenedor-login {
+    background-color: var(--color-tarjeta);
+    width: 100%;
+    max-width: 400px;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+}
+
+.cabecera-login {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.cabecera-login h3 {
+    color: var(--color-primario);
+    font-size: 24px;
+    margin-bottom: 8px;
+}
+
+.cabecera-login p {
+    color: var(--color-texto-suave);
+    font-size: 14px;
+}
+
+/* =========================================
+   FORMULARIOS
+========================================= */
+.grupo-formulario {
+    margin-bottom: 20px;
+}
+
+.grupo-formulario label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.input-estandar {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid var(--color-borde);
+    border-radius: 6px;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+.input-estandar:focus {
+    border-color: var(--color-primario);
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
+}
+
+/* =========================================
+   BOTONES Y ENLACES
+========================================= */
+.btn-principal {
+    width: 100%;
+    background-color: var(--color-primario);
+    color: white;
+    padding: 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: 10px;
+}
+
+.btn-principal:hover {
+    background-color: var(--color-primario-hover);
+}
+
+.enlace-registro {
+    display: block;
+    text-align: center;
+    margin-top: 20px;
+    color: var(--color-primario);
+    text-decoration: none;
+    font-size: 14px;
+    transition: color 0.3s ease;
+}
+
+.enlace-registro:hover {
+    text-decoration: underline;
+    color: var(--color-primario-hover);
+}
+
+/* =========================================
+   ALERTAS
+========================================= */
+.alerta-error {
+    background-color: var(--color-error-fondo);
+    color: var(--color-error);
+    padding: 12px;
+    border-radius: 6px;
+    text-align: center;
+    margin-top: 20px;
+    font-size: 14px;
+    display: none; /* Oculto por defecto */
+}
+
+.alerta-error.visible {
+    display: block;
+}
+
+/* =========================================
+   DISEÑO DEL DASHBOARD (index.jsp)
+========================================= */
+.navbar {
+    background-color: #212529; /* Gris muy oscuro */
+    color: white;
+    padding: 15px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.navbar-brand { font-size: 20px; font-weight: bold; }
+
+.navbar-user {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* Grilla principal: 350px izquierda, el resto derecha */
+.contenedor-dashboard {
+    max-width: 1200px;
+    margin: 30px auto;
+    padding: 0 20px;
+    display: grid;
+    grid-template-columns: 350px 1fr; 
+    gap: 30px;
+    align-items: start; /* Para que las cajas no se estiren innecesariamente */
+}
+
+/* Tarjetas (Paneles) */
+.panel {
+    background-color: var(--color-tarjeta);
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    overflow: hidden;
+}
+
+.panel-cabecera {
+    background-color: #198754; /* Verde */
+    color: white;
+    padding: 15px 20px;
+    font-weight: bold;
+    font-size: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.panel-cabecera.oscura { background-color: #212529; }
+
+.panel-cuerpo { padding: 20px; }
+
+/* Para formularios en 2 columnas (Registro) */
+.fila-2-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.ancho-medio { max-width: 500px; }
+
+/* =========================================
+   TABLAS Y BOTONES SECUNDARIOS
+========================================= */
+.tabla-estandar {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.tabla-estandar th, .tabla-estandar td {
+    padding: 12px 15px;
+    border-bottom: 1px solid var(--color-borde);
+    font-size: 14px;
+}
+
+.tabla-estandar th {
+    background-color: #f8f9fa;
+    color: #495057;
+    font-weight: 600;
+}
+
+.tabla-estandar tr:hover { background-color: #f1f3f5; }
+
+.badge {
+    padding: 5px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
+    color: white;
+    background-color: #6c757d;
+}
+
+.btn-peligro {
+    background-color: var(--color-error);
+    color: white;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.btn-peligro:hover { background-color: #c82333; }
+
+.btn-secundario {
+    background-color: transparent;
+    color: white;
+    border: 1px solid white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: 0.3s;
+}
+
+.btn-secundario:hover { background-color: rgba(255,255,255,0.2); }
+
+/* Colores de texto para prioridad */
+.texto-alto { color: var(--color-error); font-weight: bold; }
+.texto-medio { color: #fd7e14; font-weight: bold; }
+.texto-bajo { color: #198754; font-weight: bold; }
+
+/* =========================================
+   VENTANA EMERGENTE (MODAL PARA ENCUESTA)
+========================================= */
+.modal-fondo {
+    display: none; /* El JavaScript lo cambiará a 'flex' */
+    position: fixed;
+    top: 0; 
+    left: 0; 
+    width: 100vw;  /* 100% del ancho visual de la pantalla */
+    height: 100vh; /* 100% del alto visual de la pantalla */
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 9999; /* Prioridad máxima sobre la barra de navegación */
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-contenido {
+    background-color: var(--color-tarjeta);
+    padding: 30px;
+    border-radius: 10px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+    position: relative;
+}
+
+.cerrar-modal {
+    position: absolute;
+    top: 15px; right: 20px;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--color-texto-suave);
+}
+
+.cerrar-modal:hover { color: var(--color-error); }
