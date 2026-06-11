@@ -155,7 +155,21 @@
             </div>
             <a href="dashboardAdmin.jsp" class="btn-volver">← Volver al Panel</a>
         </div>
+        
+       <div style="display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap;">
+    <select id="filtroEstado" class="select-estado">
+        <option value="">Todos los estados</option>
+        <option value="Pendiente">Pendiente</option>
+        <option value="En proceso">En proceso</option>
+        <option value="Atendido">Atendido</option>
+    </select>
 
+    <input type="text" id="filtroCategoria" class="select-estado" placeholder="Buscar categoría">
+
+    <button class="btn-actualizar" onclick="cargarBandeja()">Filtrar</button>
+    <button class="btn-actualizar" onclick="limpiarFiltros()">Limpiar</button>
+        </div> 
+        
         <div class="panel-tabla">
             <table class="tabla-admin">
                 <thead>
@@ -176,65 +190,62 @@
 
         <script>
             // Validación de Seguridad
-            const adminActivo = JSON.parse(localStorage.getItem('adminLogueado'));
-            if (!adminActivo) {
-                window.location.href = 'loginAdmin.jsp';
+            const ctx = '<%=request.getContextPath()%>';
+
+document.addEventListener("DOMContentLoaded", function () {
+    cargarBandeja();
+});
+
+function cargarBandeja() {
+    const estado = document.getElementById('filtroEstado').value;
+    const categoria = document.getElementById('filtroCategoria').value.trim();
+
+    const params = new URLSearchParams();
+    if (estado) params.append('estado', estado);
+    if (categoria) params.append('categoria', categoria);
+
+    fetch(ctx + '/api/incidencias?' + params.toString())
+        .then(res => res.json())
+        .then(datos => {
+            const tbody = document.getElementById('cuerpoTablaAdmin');
+            tbody.innerHTML = '';
+
+            if (datos.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #adb5bd;">No hay incidentes con ese filtro.</td></tr>';
+                return;
             }
 
-            document.addEventListener("DOMContentLoaded", function () {
-                cargarBandeja();
+            datos.forEach(inc => {
+                let idVal = inc.idIncidencia || inc.id || inc.id_incidencia;
+                let catVal = inc.categoria || "Desconocida";
+                let ubiVal = inc.ubicacion || "Sin ubicación";
+                let prioVal = inc.prioridad || "Media";
+                let estVal = inc.estado || "Pendiente";
+                let clasePrio = prioVal === 'Alta' ? 'p-alta' : (prioVal === 'Media' ? 'p-media' : 'p-baja');
+
+                let selPendiente = estVal === 'Pendiente' ? 'selected' : '';
+                let selProceso = estVal === 'En proceso' ? 'selected' : '';
+                let selAtendido = estVal === 'Atendido' ? 'selected' : '';
+
+                let fila = "<tr>" +
+                    "<td>#" + idVal + "</td>" +
+                    "<td style='font-weight:bold;'>" + catVal + "</td>" +
+                    "<td>" + ubiVal + "</td>" +
+                    "<td><span class='badge " + clasePrio + "'>" + prioVal + "</span></td>" +
+                    "<td>" +
+                    "<select class='select-estado' id='estado_" + idVal + "'>" +
+                    "<option value='Pendiente' " + selPendiente + ">Pendiente</option>" +
+                    "<option value='En proceso' " + selProceso + ">En proceso</option>" +
+                    "<option value='Atendido' " + selAtendido + ">Atendido</option>" +
+                    "</select>" +
+                    "</td>" +
+                    "<td><button class='btn-actualizar' onclick='actualizarEstado(" + idVal + ")'>Guardar</button></td>" +
+                    "</tr>";
+
+                tbody.innerHTML += fila;
             });
-
-            // 1. CARGAR DATOS DESDE LA BASE DE DATOS
-            function cargarBandeja() {
-                fetch('/ProyectoIntegrador/api/incidencias')
-                        .then(res => res.json())
-                        .then(datos => {
-                            const tbody = document.getElementById('cuerpoTablaAdmin');
-                            tbody.innerHTML = '';
-
-                            if (datos.length === 0) {
-                                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #adb5bd;">No hay incidentes reportados.</td></tr>';
-                                return;
-                            }
-
-                            datos.forEach(inc => {
-                                let idVal = inc.idIncidencia || inc.id || inc.id_incidencia;
-                                let catVal = inc.categoria || "Desconocida";
-                                let ubiVal = inc.ubicacion || "Sin ubicación";
-                                let prioVal = inc.prioridad || "Media";
-                                let estVal = inc.estado || "Pendiente";
-
-                                // Estilos de prioridad
-                                let clasePrio = prioVal === 'Alta' ? 'p-alta' : (prioVal === 'Media' ? 'p-media' : 'p-baja');
-
-                                // Selección dinámica del estado actual
-                                let selPendiente = estVal === 'Pendiente' ? 'selected' : '';
-                                let selProceso = estVal === 'En proceso' ? 'selected' : '';
-                                let selAtendido = estVal === 'Atendido' ? 'selected' : '';
-
-                                let fila = "<tr>" +
-                                        "<td>#" + idVal + "</td>" +
-                                        "<td style='font-weight:bold;'>" + catVal + "</td>" +
-                                        "<td>" + ubiVal + "</td>" +
-                                        "<td><span class='badge " + clasePrio + "'>" + prioVal + "</span></td>" +
-                                        "<td>" +
-                                        "<select class='select-estado' id='estado_" + idVal + "'>" +
-                                        "<option value='Pendiente' " + selPendiente + ">Pendiente</option>" +
-                                        "<option value='En proceso' " + selProceso + ">En proceso</option>" +
-                                        "<option value='Atendido' " + selAtendido + ">Atendido</option>" +
-                                        "</select>" +
-                                        "</td>" +
-                                        "<td><button class='btn-actualizar' onclick='actualizarEstado(" + idVal + ")'>Guardar</button></td>" +
-                                        "</tr>";
-
-                                tbody.innerHTML += fila;
-                            });
-                        })
-                        .catch(err => {
-                            document.getElementById('cuerpoTablaAdmin').innerHTML = '<tr><td colspan="6" style="color: #ff6b6b; text-align:center;">Error de conexión con el servidor.</td></tr>';
-                        });
-            }
+        });
+}
 
             // 2. ENVIAR EL NUEVO ESTADO A JAVA
             function actualizarEstado(idIncidencia) {
@@ -258,6 +269,12 @@
                             }
                         })
                         .catch(err => alert('Error interno al intentar comunicarse con el servidor.'));
+            }
+            
+            function limpiarFiltros() {
+            document.getElementById('filtroEstado').value = '';
+            document.getElementById('filtroCategoria').value = '';
+            cargarBandeja();
             }
         </script>
     </body>

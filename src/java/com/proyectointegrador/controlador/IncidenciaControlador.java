@@ -25,17 +25,21 @@ public class IncidenciaControlador extends HttpServlet {
     private IncidenciaDAO dao = new IncidenciaDAO();
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        response.setContentType("application/json;charset=UTF-8");
-        List<Incidencia> incidencias = dao.listarIncidencias();
-        String jsonResult = gson.toJson(incidencias);
+protected void doGet(HttpServletRequest request, HttpServletResponse response)
+        throws ServletException, IOException {
 
-        try (PrintWriter out = response.getWriter()) {
-            out.print(jsonResult);
-            out.flush();
-        }
+    response.setContentType("application/json;charset=UTF-8");
+
+    String estado = request.getParameter("estado");
+    String categoria = request.getParameter("categoria");
+
+    List<Incidencia> incidencias = dao.listarIncidencias(estado, categoria);
+    String jsonResult = gson.toJson(incidencias);
+
+    try (PrintWriter out = response.getWriter()) {
+        out.print(jsonResult);
     }
+}
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
