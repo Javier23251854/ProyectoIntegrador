@@ -135,6 +135,7 @@
                 <input type="text" id="nombreZona" class="input-estandar" placeholder="Ej. Urbanización Los Pinos" required>
                 <input type="text" id="tipoSector" class="input-estandar" placeholder="Ej. Residencial / Comercial" required>
                 <button type="submit" class="btn-guardar">+ Guardar Zona</button>
+                <button class="btn-actualizar" onclick="eliminarZona(' + idVal + ')">Eliminar</button>
             </form>
         </div>
 
@@ -228,6 +229,29 @@
                         })
                         .catch(err => alert("Error interno al intentar guardar."));
             });
+            const ctx = '<%=request.getContextPath()%>';
+            
+            // 2. FUNCIÓN PARA ENVIAR UNA NUEVA ZONA AL CONTROLADOR
+            function eliminarZona(idZona) {
+                if (!confirm('¿Seguro que deseas eliminar esta zona?'))
+                    return;
+
+                fetch(ctx + '/api/zonas', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: 'accion=eliminar&idZona=' + encodeURIComponent(idZona)
+                })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.status === 'success') {
+                                alert(data.message);
+                                cargarZonas();
+                            } else {
+                                alert(data.message);
+                            }
+                        })
+                        .catch(() => alert('Error al comunicarse con el servidor.'));
+            }
         </script>
     </body>
 </html>
