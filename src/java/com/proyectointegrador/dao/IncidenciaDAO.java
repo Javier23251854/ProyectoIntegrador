@@ -144,4 +144,68 @@ public class IncidenciaDAO {
             return false;
         }
     }
+
+    public int contarIncidencias() {
+        return contar("SELECT COUNT(*) FROM INCIDENCIA");
+    }
+
+    public int contarPorEstado(String estado) {
+        String sql = "SELECT COUNT(*) FROM INCIDENCIA WHERE estado = ?";
+        try (Connection con = ConexionDB.conectar(); PreparedStatement ps = con.prepareStatement(sql)) {
+
+            if (con == null) {
+                return 0;
+            }
+
+            ps.setString(1, estado);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getInt(1) : 0;
+            }
+        } catch (SQLException e) {
+            return 0;
+        }
+    }
+
+    public java.util.List<Incidencia> ultimasIncidencias(int limite) {
+        java.util.List<Incidencia> lista = new java.util.ArrayList<>();
+        String sql = "SELECT * FROM INCIDENCIA ORDER BY fecha_registro DESC LIMIT ?";
+
+        try (Connection con = ConexionDB.conectar(); PreparedStatement ps = con.prepareStatement(sql)) {
+
+            if (con == null) {
+                return lista;
+            }
+
+            ps.setInt(1, limite);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Incidencia inc = new Incidencia();
+                    inc.setIdIncidencia(rs.getInt("id_incidencia"));
+                    inc.setCategoria(rs.getString("categoria"));
+                    inc.setUbicacion(rs.getString("ubicacion"));
+                    inc.setEstado(rs.getString("estado"));
+                    inc.setLatitud(rs.getDouble("latitud"));
+                    inc.setLongitud(rs.getDouble("longitud"));
+                    lista.add(inc);
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Error al obtener últimas incidencias: " + e.getMessage());
+        }
+        return lista;
+    }
+
+    private int contar(String sql) {
+        try (Connection con = ConexionDB.conectar(); PreparedStatement ps = con.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+
+            if (con == null) {
+                return 0;
+            }
+            return rs.next() ? rs.getInt(1) : 0;
+        } catch (SQLException e) {
+            return 0;
+        }
+    }
+
 }

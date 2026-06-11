@@ -103,4 +103,18 @@ public class ZonaDAO {
             return false;
         }
     }
+
+    public int contarZonas() {
+        String sql = "SELECT COUNT(*) FROM ZONA_SANTA_CLARA";
+        try (Connection con = ConexionDB.conectar(); PreparedStatement ps = con.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+
+            if (con == null) {
+                return 0;
+            }
+            return rs.next() ? rs.getInt(1) : 0;
+        } catch (SQLException e) {
+            return 0;
+        }
+    }
+
 }

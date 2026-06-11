@@ -312,6 +312,10 @@
             <div class="stat-card">
                 <div class="stat-valor" id="statProceso">0</div>
                 <div class="stat-label">En Proceso</div>
+            </div>}
+            <div class="stat-card">
+                <div class="stat-valor" id="statEncuesta">0.0</div>
+                <div class="stat-label">Satisfacción Promedio</div>
             </div>
         </div>
 
@@ -436,6 +440,7 @@
 
                 cargarZonasDropdown();
                 cargarIncidencias();
+                cargarResumen();
             });
 
             function cerrarSesion() {
@@ -532,6 +537,17 @@
                             document.getElementById('statTotales').innerText = contTotales;
                             document.getElementById('statAtendidos').innerText = contAtendidos;
                             document.getElementById('statProceso').innerText = contProceso;
+                        });
+            }
+
+            function cargarResumen() {
+                fetch(ctx + '/api/resumen')
+                        .then(res => res.json())
+                        .then(data => {
+                            document.getElementById('statTotales').innerText = data.totalIncidencias;
+                            document.getElementById('statAtendidos').innerText = data.atendidos;
+                            document.getElementById('statProceso').innerText = data.enProceso;
+                            document.getElementById('statEncuesta').innerText = Number(data.promedioEncuesta).toFixed(1);
                         });
             }
 
