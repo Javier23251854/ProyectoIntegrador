@@ -316,7 +316,7 @@
             <div class="stat-card">
                 <div class="stat-valor" id="statTotales">0</div>
                 <div class="stat-label">Reportes Totales</div>
-            </div>
+            </div> 
             <div class="stat-card">
                 <div class="stat-valor" id="statAtendidos">0</div>
                 <div class="stat-label">Casos Solucionados</div>
@@ -352,7 +352,7 @@
         <div class="modal-overlay" id="modalNuevoReporte">
             <div class="modal-content">
                 <button class="btn-cerrar-modal" onclick="cerrarModal('modalNuevoReporte')">&times;</button>
-                <h3 style="color: #0d6efd; margin-top: 0; margin-bottom: 20px;">Registrar Incidente</h3>
+                <h3 style="color: #0d6efd; margin-top: 0; margin-bottom: 20px;">Registrar Accidente</h3>
 
                 <form id="formIncidencia">
                     <input type="hidden" name="idUsuario" id="inputUsuarioId">
