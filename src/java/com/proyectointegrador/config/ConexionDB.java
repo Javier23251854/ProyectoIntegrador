@@ -18,6 +18,7 @@ public class ConexionDB {
     private static final String PASSWORD = "root"; // Déjalo vacío si estás en XAMPP
 
     // Prueba #!
+    //Prueba #2
     
     public static Connection conectar() {
         try {
