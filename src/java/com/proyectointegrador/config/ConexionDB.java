@@ -17,6 +17,8 @@ public class ConexionDB {
     private static final String USER = "root"; 
     private static final String PASSWORD = "root"; // Déjalo vacío si estás en XAMPP
 
+    // Prueba #!
+    
     public static Connection conectar() {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
