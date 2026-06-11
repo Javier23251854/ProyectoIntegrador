@@ -170,7 +170,7 @@
     <button class="btn-actualizar" onclick="limpiarFiltros()">Limpiar</button>
     <button class="btn-actualizar" onclick="window.location.href='<%=request.getContextPath()%>/api/incidencias/csv'">
     Descargar CSV
-    </button>
+</button>
         </div> 
         
         <div class="panel-tabla">
