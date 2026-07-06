@@ -46,7 +46,27 @@ public class ZonaDAO {
         }
         return lista;
     }
+    
+    public List<Zona> listarZonas() {
+    List<Zona> zonas = new ArrayList<>();
+    String sql = "SELECT nombre_zona FROM zona_santa_clara ORDER BY nombre_zona";
 
+    try (Connection con = ConexionDB.conectar();
+         PreparedStatement ps = con.prepareStatement(sql);
+         ResultSet rs = ps.executeQuery()) {
+
+        while (rs.next()) {
+            Zona z = new Zona();
+            z.setNombreZona(rs.getString("nombre_zona"));
+            zonas.add(z);
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return zonas;
+    }
+    
     // 3. Método para EDITAR (Actualizar)
     public boolean actualizarZona(Zona zona) {
         String sql = "UPDATE ZONA_SANTA_CLARA SET nombre_zona = ?, tipo_sector = ? WHERE id_zona = ?";
