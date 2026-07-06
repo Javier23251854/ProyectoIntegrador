@@ -44,29 +44,53 @@ public class IncidenciaDAO {
         }
     }
 
-    public List<Incidencia> listarIncidencias(String estado, String categoria) {
-        List<Incidencia> lista = new ArrayList<>();
-        StringBuilder sql = new StringBuilder("SELECT * FROM INCIDENCIA WHERE 1=1");
-        List<Object> params = new ArrayList<>();
+    public List<Incidencia> listarIncidencias(String idIncidencia, String estado, String categoria,
+                                           String prioridad, String ubicacion) {
+    List<Incidencia> lista = new ArrayList<>();
 
-        if (estado != null && !estado.trim().isEmpty()) {
-            sql.append(" AND estado = ?");
-            params.add(estado.trim());
+    StringBuilder sql = new StringBuilder(
+        "SELECT id_incidencia, id_usuario, id_entidad, id_zona, descripcion, categoria, prioridad, ubicacion, estado, latitud, longitud, fecha_registro " +
+        "FROM INCIDENCIA WHERE 1=1"
+    );
+
+    List<Object> params = new ArrayList<>();
+
+    if (idIncidencia != null && !idIncidencia.isBlank()) {
+        sql.append(" AND id_incidencia = ?");
+        params.add(Integer.parseInt(idIncidencia.trim()));
+    }
+
+    if (estado != null && !estado.isBlank()) {
+        sql.append(" AND estado = ?");
+        params.add(estado.trim());
+    }
+
+    if (categoria != null && !categoria.isBlank()) {
+        sql.append(" AND categoria LIKE ?");
+        params.add("%" + categoria.trim() + "%");
+    }
+
+    if (prioridad != null && !prioridad.isBlank()) {
+        sql.append(" AND prioridad = ?");
+        params.add(prioridad.trim());
+    }
+
+    if (ubicacion != null && !ubicacion.isBlank()) {
+        sql.append(" AND ubicacion = ?");
+        params.add(ubicacion.trim());
+    }
+
+    sql.append(" ORDER BY fecha_registro DESC");
+
+    Connection con = null;
+    try {
+        con = ConexionDB.conectar();
+        if (con == null) {
+            System.out.println("No se pudo conectar a la base de datos.");
+            return lista;
         }
 
-        if (categoria != null && !categoria.trim().isEmpty()) {
-            sql.append(" AND categoria LIKE ?");
-            params.add("%" + categoria.trim() + "%");
-        }
-
-        sql.append(" ORDER BY fecha_registro DESC");
-
-        try (Connection con = ConexionDB.conectar(); PreparedStatement ps = con.prepareStatement(sql.toString())) {
-
-            if (con == null) {
-                return lista;
-            }
-
+        try (PreparedStatement ps = con.prepareStatement(sql.toString())) {
             for (int i = 0; i < params.size(); i++) {
                 ps.setObject(i + 1, params.get(i));
             }
@@ -82,29 +106,38 @@ public class IncidenciaDAO {
                     inc.setCategoria(rs.getString("categoria"));
                     inc.setPrioridad(rs.getString("prioridad"));
                     inc.setUbicacion(rs.getString("ubicacion"));
-                    inc.setFechaRegistro(rs.getTimestamp("fecha_registro"));
                     inc.setEstado(rs.getString("estado"));
                     inc.setLatitud(rs.getDouble("latitud"));
                     inc.setLongitud(rs.getDouble("longitud"));
+                    inc.setFechaRegistro(rs.getTimestamp("fecha_registro"));
                     lista.add(inc);
                 }
             }
-        } catch (SQLException e) {
-            System.out.println("Error al listar incidencias filtradas: " + e.getMessage());
         }
 
-        return lista;
+    } catch (Exception e) {
+        System.out.println("Error al filtrar incidencias: " + e.getMessage());
+        e.printStackTrace();
+    } finally {
+        if (con != null) {
+            try { con.close(); } catch (SQLException ignored) {}
+        }
     }
 
+    return lista;
+}
+
     public List<Incidencia> listarIncidencias() {
-        List<Incidencia> lista = new ArrayList<>();
-        String sql = "SELECT * FROM INCIDENCIA ORDER BY fecha_registro DESC";
+    List<Incidencia> lista = new ArrayList<>();
+    String sql = "SELECT * FROM INCIDENCIA ORDER BY fecha_registro DESC";
 
-        try (Connection con = ConexionDB.conectar(); PreparedStatement ps = con.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+    Connection con = null;
+    try {
+        con = ConexionDB.conectar();
+        if (con == null) return lista;
 
-            if (con == null) {
-                return lista;
-            }
+        try (PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
                 Incidencia inc = new Incidencia();
@@ -122,28 +155,30 @@ public class IncidenciaDAO {
                 inc.setLongitud(rs.getDouble("longitud"));
                 lista.add(inc);
             }
-        } catch (SQLException e) {
-            System.out.println("Error al listar incidencias: " + e.getMessage());
         }
-
-        return lista;
+    } catch (SQLException e) {
+        System.out.println("Error al listar incidencias: " + e.getMessage());
     }
 
+    return lista;
+}
+    
     public boolean actualizarEstado(int idIncidencia, String nuevoEstado) {
-        String sql = "UPDATE incidencia SET estado = ? WHERE id_incidencia = ?";
+    String sql = "UPDATE INCIDENCIA SET estado = ? WHERE id_incidencia = ?";
 
-        try (Connection con = ConexionDB.conectar(); PreparedStatement ps = con.prepareStatement(sql)) {
+    try (Connection con = ConexionDB.conectar()) {
+        if (con == null) return false;
 
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, nuevoEstado);
             ps.setInt(2, idIncidencia);
-
             return ps.executeUpdate() > 0;
-
-        } catch (SQLException e) {
-            System.out.println("Error SQL al actualizar estado de incidencia: " + e.getMessage());
-            return false;
         }
+    } catch (SQLException e) {
+        System.out.println("Error SQL al actualizar estado de incidencia: " + e.getMessage());
+        return false;
     }
+}
 
     public int contarIncidencias() {
         return contar("SELECT COUNT(*) FROM INCIDENCIA");
@@ -207,5 +242,5 @@ public class IncidenciaDAO {
             return 0;
         }
     }
-
+    
 }

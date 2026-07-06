@@ -67,23 +67,5 @@ public class UsuarioDAO {
             System.out.println("Error al registrar usuario: " + e.getMessage());
             return false;
         }
-    }
-    
-    public boolean cambiarClave(int idUsuario, String nuevaClave) {
-    String sql = "UPDATE USUARIO SET clave=? WHERE id_usuario=?";
-
-    try (Connection con = ConexionDB.conectar();
-         PreparedStatement ps = con.prepareStatement(sql)) {
-
-        ps.setString(1, nuevaClave);
-        ps.setInt(2, idUsuario);
-
-        return ps.executeUpdate() > 0;
-
-    } catch (SQLException e) {
-        System.out.println("Error al cambiar contraseña: " + e.getMessage());
-        return false;
-    }
-}
-    
+    }   
 }
