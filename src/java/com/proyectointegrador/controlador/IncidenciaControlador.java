@@ -30,14 +30,27 @@ protected void doGet(HttpServletRequest request, HttpServletResponse response)
 
     response.setContentType("application/json;charset=UTF-8");
 
-    String estado = request.getParameter("estado");
-    String categoria = request.getParameter("categoria");
+    try {
+        String idIncidencia = request.getParameter("idIncidencia");
+        String estado = request.getParameter("estado");
+        String categoria = request.getParameter("categoria");
+        String prioridad = request.getParameter("prioridad");
+        String ubicacion = request.getParameter("ubicacion");
 
-    List<Incidencia> incidencias = dao.listarIncidencias(estado, categoria);
-    String jsonResult = gson.toJson(incidencias);
+        List<Incidencia> incidencias = dao.listarIncidencias(
+                idIncidencia, estado, categoria, prioridad, ubicacion
+        );
 
-    try (PrintWriter out = response.getWriter()) {
-        out.print(jsonResult);
+        try (PrintWriter out = response.getWriter()) {
+            out.print(gson.toJson(incidencias));
+        }
+
+    } catch (Exception e) {
+        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        try (PrintWriter out = response.getWriter()) {
+            out.print("{\"status\":\"error\",\"message\":\"Error al cargar incidencias\"}");
+        }
+        e.printStackTrace();
     }
 }
 
