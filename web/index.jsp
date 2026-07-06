@@ -300,18 +300,6 @@
             </div>
         </nav>
 
-        <h3>Cambiar contraseña</h3>
-        
-
-        <input
-            type="password"
-            id="nuevaClave"
-            placeholder="Nueva contraseña">
-
-        <button onclick="cambiarClave()">
-            Actualizar contraseña
-        </button>
-
         <div class="stats-banner">
             <div class="stat-card">
                 <div class="stat-valor" id="statTotales">0</div>
@@ -324,7 +312,7 @@
             <div class="stat-card">
                 <div class="stat-valor" id="statProceso">0</div>
                 <div class="stat-label">En Proceso</div>
-            </div>}
+            </div>
             <div class="stat-card">
                 <div class="stat-valor" id="statEncuesta">0.0</div>
                 <div class="stat-label">Satisfacción Promedio</div>
@@ -560,38 +548,6 @@
                             document.getElementById('statAtendidos').innerText = data.atendidos;
                             document.getElementById('statProceso').innerText = data.enProceso;
                             document.getElementById('statEncuesta').innerText = Number(data.promedioEncuesta).toFixed(1);
-                        });
-            }
-
-            const ctx = '<%=request.getContextPath()%>';
-
-            function cambiarClave() {
-
-                let clave =
-                        document.getElementById("nuevaClave").value;
-
-                if (clave.length < 6) {
-                    alert("La contraseña debe tener al menos 6 caracteres");
-                    return;
-                }
-
-                fetch(ctx + "/api/cambiarClave", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type":
-                                "application/x-www-form-urlencoded"
-                    },
-                    body:
-                            "nuevaClave=" +
-                            encodeURIComponent(clave)
-                })
-                        .then(r => r.json())
-                        .then(data => {
-                            alert(data.message);
-
-                            if (data.status === "success") {
-                                document.getElementById("nuevaClave").value = "";
-                            }
                         });
             }
 
