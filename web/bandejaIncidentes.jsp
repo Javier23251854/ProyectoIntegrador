@@ -202,7 +202,7 @@
 
         <div style="display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap;">
             <input type="text" id="filtroId" class="select-estado" placeholder="Buscar ID"> 
-            
+
             <select id="filtroEstado" class="select-estado">
                 <option value="">Todos los estados</option>
                 <option value="Pendiente">Pendiente</option>
@@ -223,19 +223,22 @@
                 <option value="">Todas las ubicaciones</option>
             </select>
 
-            <button class="btn-actualizar" onclick="cargarBandeja()">Filtrar</button>
+            <button type="button" class="btn-actualizar" onclick="cargarBandeja()">Filtrar</button>
             <button type="button" class="btn-limpiar" onclick="limpiarFiltros()">Limpiar</button>
-            <button class="btn-pdf" onclick="window.location.href = '<%=request.getContextPath()%>/api/reportes/incidencias?tipo=detalle'">
+            <button type="button" class="btn-pdf" onclick="window.location.href = '<%=request.getContextPath()%>/api/reportes/incidencias?tipo=detalle'">
                 PDF Detallado
             </button>
-            <button class="btn-pdf btn-pdf-secundario" onclick="window.location.href = '<%=request.getContextPath()%>/api/reportes/incidencias?tipo=estado'">
+            <button type="button" class="btn-pdf btn-pdf-secundario" onclick="window.location.href = '<%=request.getContextPath()%>/api/reportes/incidencias?tipo=estado'">
                 PDF por Estado
             </button>
-            <button class="btn-pdf btn-pdf-terciario" onclick="window.location.href = '<%=request.getContextPath()%>/api/reportes/incidencias?tipo=zona'">
+            <button type="button" class="btn-pdf btn-pdf-terciario" onclick="window.location.href = '<%=request.getContextPath()%>/api/reportes/incidencias?tipo=zona'">
                 PDF por Zona
             </button>
             <button class="btn-actualizar" onclick="window.location.href = '<%=request.getContextPath()%>/api/incidencias/csv'">
                 Descargar CSV
+            </button>
+            <button id="btnPdfConsulta" type="button" class="btn-pdf" style="display:none;" onclick="abrirPdfConsulta()">
+                Ver PDF de la consulta
             </button>
         </div> 
 
@@ -258,210 +261,232 @@
         </div>
 
         <script>
-    const ctx = '<%=request.getContextPath()%>';
+            const ctx = '<%=request.getContextPath()%>';
 
-    document.addEventListener("DOMContentLoaded", function () {
-        cargarBandeja();
-        cargarZonas();
-    });
-
-    function obtenerIdNumerico(inc) {
-        const idVal = inc.idIncidencia || inc.id || inc.id_incidencia;
-        const idNum = parseInt(idVal, 10);
-        return isNaN(idNum) ? null : idNum;
-    }
-
-    function parsearFiltroId(texto) {
-        const valor = (texto || '').trim();
-
-        if (valor === '') {
-            return { tipo: 'vacio' };
-        }
-
-        if (valor.includes('-')) {
-            const partes = valor.split('-').map(p => p.trim()).filter(p => p !== '');
-
-            if (partes.length !== 2) {
-                return { tipo: 'invalido' };
-            }
-
-            const min = parseInt(partes[0], 10);
-            const max = parseInt(partes[1], 10);
-
-            if (isNaN(min) || isNaN(max)) {
-                return { tipo: 'invalido' };
-            }
-
-            return {
-                tipo: 'rango',
-                min: Math.min(min, max),
-                max: Math.max(min, max)
-            };
-        }
-
-        const exacto = parseInt(valor, 10);
-
-        if (isNaN(exacto)) {
-            return { tipo: 'invalido' };
-        }
-
-        return { tipo: 'exacto', exacto: exacto };
-    }
-
-    function cargarBandeja() {
-        const filtroIdTexto = document.getElementById('filtroId').value.trim();
-        const filtroId = parsearFiltroId(filtroIdTexto);
-
-        if (filtroId.tipo === 'invalido') {
-            alert('Escribe un ID válido');
-            return;
-        }
-
-        const estado = document.getElementById('filtroEstado').value;
-        const categoria = document.getElementById('filtroCategoria').value.trim();
-        const prioridad = document.getElementById('filtroPrioridad').value;
-        const ubicacion = document.getElementById('filtroUbicacion').value;
-
-        const params = new URLSearchParams();
-        if (estado) params.append('estado', estado);
-        if (categoria) params.append('categoria', categoria);
-        if (prioridad) params.append('prioridad', prioridad);
-        if (ubicacion) params.append('ubicacion', ubicacion);
-
-        fetch(ctx + '/api/incidencias?' + params.toString())
-            .then(async res => {
-                const text = await res.text();
-                if (!res.ok) {
-                    throw new Error(text);
-                }
-                return JSON.parse(text);
-            })
-            .then(datos => {
-                const tbody = document.getElementById('cuerpoTablaAdmin');
-                tbody.innerHTML = '';
-
-                if (!Array.isArray(datos)) {
-                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#adb5bd;">Respuesta inválida del servidor.</td></tr>';
-                    return;
-                }
-
-                let filtrados = datos.filter(inc => {
-                    const idNum = obtenerIdNumerico(inc);
-                    if (idNum === null) return false;
-
-                    if (filtroId.tipo === 'exacto') {
-                        return idNum === filtroId.exacto;
-                    }
-
-                    if (filtroId.tipo === 'rango') {
-                        return idNum >= filtroId.min && idNum <= filtroId.max;
-                    }
-
-                    return true;
-                });
-
-                filtrados.sort((a, b) => {
-                    const idA = obtenerIdNumerico(a);
-                    const idB = obtenerIdNumerico(b);
-
-                    if (idA === null && idB === null) return 0;
-                    if (idA === null) return 1;
-                    if (idB === null) return -1;
-
-                    return idB - idA;
-                });
-
-                if (filtrados.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#adb5bd;">No hay incidentes con ese filtro.</td></tr>';
-                    return;
-                }
-
-                filtrados.forEach(inc => {
-                    let idVal = inc.idIncidencia || inc.id || inc.id_incidencia;
-                    let catVal = inc.categoria || "Desconocida";
-                    let ubiVal = inc.ubicacion || "Sin ubicación";
-                    let prioVal = inc.prioridad || "Media";
-                    let estVal = inc.estado || "Pendiente";
-                    let clasePrio = prioVal === 'Alta' ? 'p-alta' : (prioVal === 'Media' ? 'p-media' : 'p-baja');
-
-                    let selPendiente = estVal === 'Pendiente' ? 'selected' : '';
-                    let selProceso = estVal === 'En proceso' ? 'selected' : '';
-                    let selAtendido = estVal === 'Atendido' ? 'selected' : '';
-
-                    let fila = "<tr>" +
-                        "<td>#" + idVal + "</td>" +
-                        "<td style='font-weight:bold;'>" + catVal + "</td>" +
-                        "<td>" + ubiVal + "</td>" +
-                        "<td><span class='badge " + clasePrio + "'>" + prioVal + "</span></td>" +
-                        "<td>" +
-                            "<select class='select-estado' id='estado_" + idVal + "'>" +
-                                "<option value='Pendiente' " + selPendiente + ">Pendiente</option>" +
-                                "<option value='En proceso' " + selProceso + ">En proceso</option>" +
-                                "<option value='Atendido' " + selAtendido + ">Atendido</option>" +
-                            "</select>" +
-                        "</td>" +
-                        "<td><button class='btn-actualizar' onclick='actualizarEstado(" + idVal + ")'>Guardar</button></td>" +
-                    "</tr>";
-
-                    tbody.innerHTML += fila;
-                });
-            })
-            .catch(err => {
-                console.error('Error cargando bandeja:', err);
-                const tbody = document.getElementById('cuerpoTablaAdmin');
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#adb5bd;">No se pudo cargar la tabla.</td></tr>';
-            });
-    }
-
-    function actualizarEstado(idIncidencia) {
-        let nuevoEstado = document.getElementById('estado_' + idIncidencia).value;
-        let payload = "accion=actualizarEstado&idIncidencia=" + idIncidencia + "&nuevoEstado=" + encodeURIComponent(nuevoEstado);
-
-        fetch(ctx + '/api/incidencias', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: payload
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.status === 'success') {
-                alert('Estado actualizado correctamente a: ' + nuevoEstado);
+            document.addEventListener("DOMContentLoaded", function () {
                 cargarBandeja();
-            } else {
-                alert('Error BD: No se pudo actualizar el estado.');
+                cargarZonas();
+            });
+
+            function obtenerIdNumerico(inc) {
+                const idVal = inc.idIncidencia || inc.id || inc.id_incidencia;
+                const idNum = parseInt(idVal, 10);
+                return isNaN(idNum) ? null : idNum;
             }
-        })
-        .catch(err => alert('Error interno al intentar comunicarse con el servidor.'));
-    }
 
-    function limpiarFiltros() {
-        document.getElementById('filtroId').value = '';
-        document.getElementById('filtroEstado').value = '';
-        document.getElementById('filtroCategoria').value = '';
-        document.getElementById('filtroPrioridad').value = '';
-        document.getElementById('filtroUbicacion').selectedIndex = 0;
-        cargarBandeja();
-    }
+            function parsearFiltroId(texto) {
+                const valor = (texto || '').trim();
 
-    function cargarZonas() {
-        fetch(ctx + '/api/zonas')
-            .then(res => res.json())
-            .then(datos => {
-                const select = document.getElementById('filtroUbicacion');
-                select.innerHTML = '<option value="">Todas las ubicaciones</option>';
+                if (valor === '') {
+                    return {tipo: 'vacio'};
+                }
 
-                datos.forEach(zona => {
-                    const nombreZona = zona.nombreZona || zona.nombre_zona;
-                    if (nombreZona) {
-                        const option = document.createElement('option');
-                        option.value = nombreZona;
-                        option.textContent = nombreZona;
-                        select.appendChild(option);
+                if (valor.includes('-')) {
+                    const partes = valor.split('-').map(p => p.trim()).filter(p => p !== '');
+                    if (partes.length !== 2) {
+                        return {tipo: 'invalido'};
                     }
-                });
-            })
-            .catch(err => console.error('Error cargando zonas:', err));
-    }
-</script>
+
+                    const min = parseInt(partes[0], 10);
+                    const max = parseInt(partes[1], 10);
+
+                    if (isNaN(min) || isNaN(max)) {
+                        return {tipo: 'invalido'};
+                    }
+
+                    return {
+                        tipo: 'rango',
+                        min: Math.min(min, max),
+                        max: Math.max(min, max)
+                    };
+                }
+
+                const exacto = parseInt(valor, 10);
+                if (isNaN(exacto)) {
+                    return {tipo: 'invalido'};
+                }
+
+                return {tipo: 'exacto', exacto: exacto};
+            }
+
+            function construirParametrosConsulta() {
+                const params = new URLSearchParams();
+
+                const filtroIdTexto = document.getElementById('filtroId').value.trim();
+                const filtroId = parsearFiltroId(filtroIdTexto);
+
+                const estado = document.getElementById('filtroEstado').value;
+                const categoria = document.getElementById('filtroCategoria').value.trim();
+                const prioridad = document.getElementById('filtroPrioridad').value;
+                const ubicacion = document.getElementById('filtroUbicacion').value;
+
+                if (filtroId.tipo === 'exacto') {
+                    params.append('idIncidencia', filtroId.exacto);
+                } else if (filtroId.tipo === 'rango') {
+                    params.append('idMin', filtroId.min);
+                    params.append('idMax', filtroId.max);
+                }
+
+                if (estado)
+                    params.append('estado', estado);
+                if (categoria)
+                    params.append('categoria', categoria);
+                if (prioridad)
+                    params.append('prioridad', prioridad);
+                if (ubicacion)
+                    params.append('ubicacion', ubicacion);
+
+                return {params, filtroId};
+            }
+
+            function cargarBandeja() {
+                const {params, filtroId} = construirParametrosConsulta();
+
+                if (filtroId.tipo === 'invalido') {
+                    alert('Escribe un ID válido o un rango tipo 15-32');
+                    return;
+                }
+
+                fetch(ctx + '/api/incidencias?' + params.toString())
+                        .then(async res => {
+                            const text = await res.text();
+                            if (!res.ok)
+                                throw new Error(text);
+                            return JSON.parse(text);
+                        })
+                        .then(datos => {
+                            const tbody = document.getElementById('cuerpoTablaAdmin');
+                            const btnPdf = document.getElementById('btnPdfConsulta');
+                            tbody.innerHTML = '';
+
+                            if (!Array.isArray(datos)) {
+                                btnPdf.style.display = 'none';
+                                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#adb5bd;">Respuesta inválida del servidor.</td></tr>';
+                                return;
+                            }
+
+                            const filtrados = datos.slice().sort((a, b) => {
+                                const idA = obtenerIdNumerico(a);
+                                const idB = obtenerIdNumerico(b);
+
+                                if (idA === null && idB === null)
+                                    return 0;
+                                if (idA === null)
+                                    return 1;
+                                if (idB === null)
+                                    return -1;
+
+                                return idB - idA;
+                            });
+
+                            if (filtrados.length === 0) {
+                                btnPdf.style.display = 'none';
+                                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#adb5bd;">No hay incidentes con ese filtro.</td></tr>';
+                                return;
+                            }
+
+                            btnPdf.style.display = 'inline-block';
+
+                            filtrados.forEach(inc => {
+                                let idVal = inc.idIncidencia || inc.id || inc.id_incidencia;
+                                let catVal = inc.categoria || "Desconocida";
+                                let ubiVal = inc.ubicacion || "Sin ubicación";
+                                let prioVal = inc.prioridad || "Media";
+                                let estVal = inc.estado || "Pendiente";
+                                let clasePrio = prioVal === 'Alta' ? 'p-alta' : (prioVal === 'Media' ? 'p-media' : 'p-baja');
+
+                                let selPendiente = estVal === 'Pendiente' ? 'selected' : '';
+                                let selProceso = estVal === 'En proceso' ? 'selected' : '';
+                                let selAtendido = estVal === 'Atendido' ? 'selected' : '';
+
+                                let fila = "<tr>" +
+                                        "<td>#" + idVal + "</td>" +
+                                        "<td style='font-weight:bold;'>" + catVal + "</td>" +
+                                        "<td>" + ubiVal + "</td>" +
+                                        "<td><span class='badge " + clasePrio + "'>" + prioVal + "</span></td>" +
+                                        "<td>" +
+                                        "<select class='select-estado' id='estado_" + idVal + "'>" +
+                                        "<option value='Pendiente' " + selPendiente + ">Pendiente</option>" +
+                                        "<option value='En proceso' " + selProceso + ">En proceso</option>" +
+                                        "<option value='Atendido' " + selAtendido + ">Atendido</option>" +
+                                        "</select>" +
+                                        "</td>" +
+                                        "<td><button class='btn-actualizar' onclick='actualizarEstado(" + idVal + ")'>Guardar</button></td>" +
+                                        "</tr>";
+
+                                tbody.innerHTML += fila;
+                            });
+                        })
+                        .catch(err => {
+                            console.error('Error cargando bandeja:', err);
+                            document.getElementById('btnPdfConsulta').style.display = 'none';
+                            document.getElementById('cuerpoTablaAdmin').innerHTML =
+                                    '<tr><td colspan="6" style="text-align:center; color:#adb5bd;">No se pudo cargar la tabla.</td></tr>';
+                        });
+            }
+
+            function abrirPdfConsulta() {
+                const {params, filtroId} = construirParametrosConsulta();
+
+                if (filtroId.tipo === 'invalido') {
+                    alert('El filtro de ID no es válido.');
+                    return;
+                }
+
+                const url = ctx + '/api/reportes/incidencias?tipo=consulta&' + params.toString();
+                window.open(url, '_blank', 'noopener');
+            }
+
+            function actualizarEstado(idIncidencia) {
+                let nuevoEstado = document.getElementById('estado_' + idIncidencia).value;
+                let payload = "accion=actualizarEstado&idIncidencia=" + idIncidencia + "&nuevoEstado=" + encodeURIComponent(nuevoEstado);
+
+                fetch(ctx + '/api/incidencias', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: payload
+                })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.status === 'success') {
+                                alert('Estado actualizado correctamente a: ' + nuevoEstado);
+                                cargarBandeja();
+                            } else {
+                                alert('Error BD: No se pudo actualizar el estado.');
+                            }
+                        })
+                        .catch(err => alert('Error interno al intentar comunicarse con el servidor.'));
+            }
+
+            function limpiarFiltros() {
+                document.getElementById('filtroId').value = '';
+                document.getElementById('filtroEstado').value = '';
+                document.getElementById('filtroCategoria').value = '';
+                document.getElementById('filtroPrioridad').value = '';
+                document.getElementById('filtroUbicacion').selectedIndex = 0;
+                document.getElementById('btnPdfConsulta').style.display = 'none';
+                cargarBandeja();
+            }
+
+            function cargarZonas() {
+                fetch(ctx + '/api/zonas')
+                        .then(res => res.json())
+                        .then(datos => {
+                            const select = document.getElementById('filtroUbicacion');
+                            select.innerHTML = '<option value="">Todas las ubicaciones</option>';
+
+                            datos.forEach(zona => {
+                                const nombreZona = zona.nombreZona || zona.nombre_zona;
+                                if (nombreZona) {
+                                    const option = document.createElement('option');
+                                    option.value = nombreZona;
+                                    option.textContent = nombreZona;
+                                    select.appendChild(option);
+                                }
+                            });
+                        })
+                        .catch(err => console.error('Error cargando zonas:', err));
+            }
+        </script>
     </body>
 </html>
